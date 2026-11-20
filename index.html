@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>STUDYMATE - Trạm Trò Chơi KNTT Lớp 9</title>
+    <title>STUDYMATE - Hệ sinh thái học liệu số</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -125,10 +125,6 @@
                 </div>
                 
                 <div class="flex items-center gap-2 md:gap-4 flex-shrink-0">
-                    <button type="button" onclick="renderView('leaderboard')" aria-label="Mở bảng xếp hạng" class="flex items-center justify-center gap-2 bg-violet-100 hover:bg-violet-200 text-violet-800 border border-violet-200 rounded-xl px-3 md:px-4 py-2 font-bold text-xs md:text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500 no-select">
-                        <i class="ph-fill ph-trophy text-amber-600 text-lg" aria-hidden="true"></i>
-                        <span>Bảng xếp hạng</span>
-                    </button>
                     <div class="flex items-center gap-1 md:gap-2 bg-amber-50 px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl border border-amber-100 shadow-sm transition-transform hover:scale-105 cursor-default no-select">
                         <i class="ph-fill ph-star text-amber-400 text-lg animate-pulse"></i>
                         <span id="global-score" class="font-black text-amber-600">0</span>
@@ -579,13 +575,6 @@
             });
             html += `
 <div class='mt-6 pt-4 border-t border-slate-200'></div>
-<button onclick="renderView('leaderboard')" id="menu-leaderboard" class="w-full flex items-center gap-4 px-4 py-3.5 rounded-[1rem] sidebar-btn font-bold text-slate-500 hover:bg-slate-200/60 group text-left transition-all no-select">
-<div class="icon-box w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-xl transition-transform shadow-sm group-hover:scale-110 flex-shrink-0" style="background-color: #fef08a; color: #a16207;">
-<i class="ph-fill ph-trophy text-base md:text-xl"></i>
-</div>
-<span class="text-xs md:text-sm uppercase tracking-wider whitespace-nowrap">Bảng xếp hạng</span>
-</button>
-
 <button onclick="showAuthModal()" id="menu-auth" class="w-full flex items-center gap-4 px-4 py-3.5 rounded-[1rem] sidebar-btn font-bold text-slate-500 hover:bg-slate-200/60 group text-left transition-all no-select mt-2">
 <div class="icon-box w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center text-xl transition-transform shadow-sm group-hover:scale-110 flex-shrink-0" style="background-color: #e2e8f0; color: #475569;">
 <i class="ph-fill ph-user"></i>
@@ -1134,7 +1123,7 @@ async function handleLogin() {
         document.getElementById('auth-text').innerText = currentUser.username;
         closeAuthModal();
         if (currentUser.role === 'teacher') renderView('teacher_dashboard');
-        else renderView('leaderboard');
+        else renderView('home');
         return;
     }
     
@@ -1156,7 +1145,7 @@ async function handleLogin() {
             document.getElementById('auth-text').innerText = currentUser.username;
             closeAuthModal();
             if (currentUser.role === 'teacher') renderView('teacher_dashboard');
-            else renderView('leaderboard');
+            else renderView('home');
         } else {
             err.innerText = data.message || "Sai thông tin đăng nhập";
             err.classList.remove('hidden');
@@ -1696,7 +1685,7 @@ window.__practice9Test={numeric,shortMatch,result,answered,state:p,chapter,quest
 </style>
 <script id="studymate-sheets-sync">
 (() => {
- const endpoint = 'https://script.google.com/macros/s/AKfycby0HW2tUXQBSxQ6Ol1HRYWirtHF_9300AYGOx9IrbSZtqBiV0yFZO2D2neDqhN6UUZz/exec';
+ const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbxeVe-zmgkfiJZCqdT36tgg_qJBUAXGzmgkcvUX1KFduQhF_EHoEKWSNm5xj2l_CdkD/exec';
  const queueKey = 'studymate-sheets-pending-v1';
  let queue = {};
  try { queue = JSON.parse(localStorage.getItem(queueKey) || '{}') || {}; } catch {}
@@ -1752,7 +1741,7 @@ window.__practice9Test={numeric,shortMatch,result,answered,state:p,chapter,quest
    status(id, 'Đang lưu kết quả…');
    const task = (async () => {
      try {
-       const response = await fetch(endpoint, {
+       const response = await fetch(resultsEndpoint, {
          method:'POST', body:JSON.stringify(payload),
          signal:AbortSignal.timeout(20000)
        });
@@ -1802,6 +1791,57 @@ window.__practice9Test={numeric,shortMatch,result,answered,state:p,chapter,quest
      }
      send(id);
    });
+ };
+ const previousRankView = window.renderView;
+ window.renderView = function(view, ...args) {
+   if (view === 'leaderboard') return previousRankView.call(this, 'home', ...args);
+   return previousRankView.call(this, view, ...args);
+   currentView = view;
+   document.getElementById('view-title').textContent = 'Bảng Vinh Danh';
+   const main = document.getElementById('main-content');
+   main.innerHTML = `<section class="m-4 md:m-8 p-5 md:p-8 rounded-3xl bg-white border border-indigo-100 shadow-sm">
+     <div class="flex flex-wrap items-center justify-between gap-3"><h2 class="text-2xl font-black text-indigo-800">🏆 Bảng Vinh Danh · Top 10</h2>
+     <button type="button" id="studymate-rank-refresh" class="rounded-xl border border-indigo-200 px-4 py-2 font-bold text-indigo-700">Làm mới</button></div>
+     <p class="mt-2 text-sm text-slate-600">Mỗi hoạt động tính lần làm tốt nhất trên thang 10. Tổng điểm cao hơn xếp trước; bằng điểm ưu tiên thời gian ngắn hơn.</p>
+     <p id="studymate-rank-status" class="py-4 text-sm font-semibold text-slate-600" role="status">Đang tải từ Google Sheets…</p>
+     <div class="overflow-x-auto"><table class="w-full text-left text-sm" hidden id="studymate-rank-table">
+     <thead class="bg-indigo-50"><tr><th class="p-3">Hạng</th><th class="p-3">Học sinh</th><th class="p-3">Lớp</th><th class="p-3">Tổng điểm</th><th class="p-3">Thời gian</th></tr></thead><tbody></tbody>
+     </table></div></section>`;
+   document.getElementById('studymate-rank-refresh').onclick = () => window.renderView('leaderboard');
+   const status = document.getElementById('studymate-rank-status');
+   const table = document.getElementById('studymate-rank-table');
+   (async () => {
+     try {
+       const url = new URL(resultsEndpoint);
+       url.searchParams.set('action','getLeaderboard');
+       const response = await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(15000)});
+       if (!response.ok) throw new Error();
+       const data = await response.json();
+       if (!status.isConnected) return;
+       if (!data.ok || !Array.isArray(data.rows)) {
+         status.textContent = 'Chưa lấy được bảng điểm chung. Kiểm tra mã Apps Script và phiên bản triển khai.';
+         return;
+       }
+       if (!data.rows.length) {
+         status.textContent = 'Chưa có kết quả hợp lệ trong tab ket qua. Hãy nộp một bài rồi bấm Làm mới.';
+         return;
+       }
+       const body = table.tBodies[0];
+       for (const row of data.rows.slice(0,10)) {
+         const tr = body.insertRow();
+         tr.className='border-b border-slate-100';
+         for (const value of [row.rank,row.displayName,row.className||'—',Number(row.score).toLocaleString('vi-VN'),Math.floor(row.seconds/60)+' phút '+row.seconds%60+' giây']) {
+           const td=tr.insertCell();
+           td.className='p-3';
+           td.textContent=String(value);
+         }
+       }
+       table.hidden=false;
+       status.textContent='Đã cập nhật từ Google Sheets.';
+     } catch {
+       if (status.isConnected) status.textContent='Không kết nối được Google Sheets. Kiểm tra quyền truy cập hoặc thử Làm mới.';
+     }
+   })();
  };
 })();
 </script>
